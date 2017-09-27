@@ -126,9 +126,19 @@ class TableBody extends Component {
   };
 
   componentWillMount() {
-    this.setState({
-      selectedRows: this.getSelectedRows(this.props),
-    });
+    if (this.props.preScanRows) {
+      this.setState({
+        selectedRows: this.getSelectedRows(this.props),
+      });
+    }
+  }
+
+  componentDidMount() {
+    if (!this.props.preScanRows) {
+      this.setState({ // eslint-disable-line react/no-did-mount-set-state
+        selectedRows: this.getSelectedRows(this.props),
+      });
+    }
   }
 
   componentWillReceiveProps(nextProps) {
@@ -210,7 +220,7 @@ class TableBody extends Component {
         columnNumber={0}
         style={{
           width: 24,
-          cursor: disabled ? 'not-allowed' : 'inherit',
+          cursor: disabled ? 'default' : 'inherit',
         }}
       >
         <Checkbox
@@ -226,7 +236,7 @@ class TableBody extends Component {
   getSelectedRows(props) {
     const selectedRows = [];
 
-    if (props.selectable && props.preScanRows) {
+    if (props.selectable) {
       let index = 0;
       React.Children.forEach(props.children, (child) => {
         if (React.isValidElement(child)) {
@@ -281,7 +291,9 @@ class TableBody extends Component {
 
     if (this.props.selectable) {
       // Prevent text selection while selecting rows.
-      window.getSelection().removeAllRanges();
+      if (window.getSelection().rangeCount > 0 && window.getSelection().getRangeAt(0).getClientRects.length > 0) {
+        window.getSelection().removeAllRanges();
+      }
       this.processRowSelection(event, rowNumber);
     }
   };
@@ -411,12 +423,7 @@ class TableBody extends Component {
   };
 
   getColumnId(columnNumber) {
-    let columnId = columnNumber;
-    if (this.props.displayRowCheckbox) {
-      columnId--;
-    }
-
-    return columnId;
+    return columnNumber - 1;
   }
 
   render() {

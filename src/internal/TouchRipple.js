@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
-import ReactTransitionGroup from 'react-addons-transition-group';
+import ReactTransitionGroup from 'react-transition-group/TransitionGroup';
 import Dom from '../utils/dom';
 import CircleRipple from './CircleRipple';
 
@@ -205,6 +205,7 @@ class TouchRipple extends Component {
         left: 0,
         overflow: 'hidden',
         pointerEvents: 'none',
+        zIndex: 1, // This is also needed so that ripples do not bleed past a parent border radius.
       }, style);
 
       rippleGroup = (

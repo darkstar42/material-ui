@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {createChildFragment} from '../utils/childUtils';
 import Events from '../utils/events';
 import keycode from 'keycode';
 import FocusRipple from './FocusRipple';
@@ -58,7 +57,6 @@ class EnhancedButton extends Component {
     onKeyDown: PropTypes.func,
     onKeyUp: PropTypes.func,
     onKeyboardFocus: PropTypes.func,
-    onTouchTap: PropTypes.func,
     style: PropTypes.object,
     tabIndex: PropTypes.number,
     touchRippleColor: PropTypes.string,
@@ -74,7 +72,6 @@ class EnhancedButton extends Component {
     onKeyDown: () => {},
     onKeyUp: () => {},
     onKeyboardFocus: () => {},
-    onTouchTap: () => {},
     tabIndex: 0,
     type: 'button',
   };
@@ -165,6 +162,10 @@ class EnhancedButton extends Component {
         color={focusRippleColor}
         opacity={focusRippleOpacity}
         show={isKeyboardFocused}
+        style={{
+          overflow: 'hidden',
+        }}
+        key="focusRipple"
       />
     ) : undefined;
 
@@ -174,16 +175,17 @@ class EnhancedButton extends Component {
         centerRipple={centerRipple}
         color={touchRippleColor}
         opacity={touchRippleOpacity}
+        key="touchRipple"
       >
         {children}
       </TouchRipple>
     ) : undefined;
 
-    return createChildFragment({
+    return [
       focusRipple,
       touchRipple,
-      children: touchRipple ? undefined : children,
-    });
+      touchRipple ? undefined : children,
+    ];
   }
 
   handleKeyDown = (event) => {
@@ -230,19 +232,12 @@ class EnhancedButton extends Component {
     }
   };
 
-  handleClick = (event) => {
-    if (!this.props.disabled) {
-      tabPressed = false;
-      this.props.onClick(event);
-    }
-  };
-
   handleTouchTap = (event) => {
     this.cancelFocusTimeout();
     if (!this.props.disabled) {
       tabPressed = false;
       this.removeKeyboardFocus(event);
-      this.props.onTouchTap(event);
+      this.props.onClick(event);
     }
   };
 
@@ -267,7 +262,6 @@ class EnhancedButton extends Component {
       onKeyUp, // eslint-disable-line no-unused-vars
       onKeyDown, // eslint-disable-line no-unused-vars
       onKeyboardFocus, // eslint-disable-line no-unused-vars
-      onTouchTap, // eslint-disable-line no-unused-vars
       style,
       tabIndex,
       type,
@@ -294,7 +288,6 @@ class EnhancedButton extends Component {
       fontWeight: 'inherit',
       position: 'relative', // This is needed so that ripples do not bleed past border radius.
       verticalAlign: href ? 'middle' : null,
-      zIndex: 1, // This is also needed so that (onTouch) ripples do not bleed past border radius.
     }, style);
 
 
@@ -319,15 +312,15 @@ class EnhancedButton extends Component {
       style: prepareStyles(mergedStyles),
       ref: (node) => this.button = node,
       disabled: disabled,
-      href: href,
       onBlur: this.handleBlur,
-      onClick: this.handleClick,
       onFocus: this.handleFocus,
       onKeyUp: this.handleKeyUp,
       onKeyDown: this.handleKeyDown,
-      onTouchTap: this.handleTouchTap,
+      onClick: this.handleTouchTap,
       tabIndex: disabled || disableKeyboardFocus ? -1 : tabIndex,
     };
+
+    if (href) buttonProps.href = href;
 
     const buttonChildren = this.createButtonChildren();
 
